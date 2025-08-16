@@ -22,3 +22,6 @@
     [modules."http/gin"]
         no_tag = false
         pre_release=""
+    [modules."cache/redis"]
+        no_tag = false
+        pre_release=""
