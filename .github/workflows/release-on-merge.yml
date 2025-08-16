@@ -92,15 +92,10 @@ jobs:
               # Fallback to at least the root module so the tool has one module
               MODULES="."
             fi
-            MODULE_FLAGS=""
-            for m in $MODULES; do
-              MODULE_FLAGS="$MODULE_FLAGS -m $m"
-            done
-
             for c in $COMMITS; do
               subject=$(git log -1 --pretty=%s "$c" | sed 's/"/\\"/g')
-              # Provide at least one module to satisfy changelog requirements
-              changelog create -c "$c" -t release -d "$subject" $MODULE_FLAGS -ni || true
+              # Provide modules as positional arguments (no -m flag supported by changelog CLI)
+              changelog create -c "$c" -t release -d "$subject" $MODULES -ni || true
             done
           else
             echo "changelog CLI not available; skipping per-commit annotations"
@@ -110,6 +105,7 @@ jobs:
         run: |
           # Generate changelog from calculated release manifest
           if command -v generatechangelog >/dev/null 2>&1; then
+            rm -f CHANGELOG.md 2>/dev/null || true
             generatechangelog -release release.json -o CHANGELOG.md || echo "generatechangelog failed; skipping changelog generation"
           else
             echo "generatechangelog not available; skipping changelog generation"
