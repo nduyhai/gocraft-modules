@@ -1,3 +1,3 @@
 module github.com/nduyhai/gocraft-modules/db/gorm
 
-go 1.25.0
+go 1.25
