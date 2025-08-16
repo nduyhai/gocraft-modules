@@ -61,7 +61,7 @@ jobs:
 
       - name: Calculate next per-module versions
         run: |
-          calculaterelease --config modman.toml > release.json
+          calculaterelease -o release.json
 
       - name: Create and push tags per module
         env:
