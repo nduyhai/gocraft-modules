@@ -50,10 +50,8 @@ jobs:
         run: |
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/calculaterelease@latest
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/tagrelease@latest
-          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/generatechangelog@latest
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/changelog@latest
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/updatemodulemeta@latest
-          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/eachmodule@latest
 
       - name: Configure Git user
         run: |
@@ -65,6 +63,14 @@ jobs:
           rm -f release.json
           calculaterelease -o release.json
 
+      - name: Create and push tags per module
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tagrelease -release release.json
+          # Ensure tags are pushed if created locally
+          git push --follow-tags || true
+
       - name: Update module metadata
         run: |
           if command -v updatemodulemeta >/dev/null 2>&1; then
@@ -72,99 +78,3 @@ jobs:
           else
             echo "updatemodulemeta not available; skipping"
           fi
-
-      - name: Create per-module changelog annotations with eachmodule
-        run: |
-          if ! command -v changelog >/dev/null 2>&1; then
-            echo "changelog CLI not available; skipping per-module annotations"
-            exit 0
-          fi
-          if ! command -v eachmodule >/dev/null 2>&1; then
-            echo "eachmodule CLI not available; skipping per-module annotations"
-            exit 0
-          fi
-          if [ ! -f release.json ]; then
-            echo "release.json missing; nothing to annotate"
-            exit 0
-          fi
-
-          # Establish commit range for this push
-          RANGE="${{ github.event.before }}..${{ github.sha }}"
-          if [ -z "${{ github.event.before }}" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-            COMMITS=$(git rev-list -n 1 ${{ github.sha }})
-          else
-            COMMITS=$(git rev-list --reverse "$RANGE")
-          fi
-
-          # Walk each module and create an annotation only if:
-          #  1) The module is present in release.json (.modules["<path>"] exists), and
-          #  2) There are commits in this push that touched files under that module.
-          eachmodule -skip-root -- bash -lc '
-            set -e
-            # Determine module path relative to repo root
-            MOD=$(git rev-parse --show-prefix | sed "s:/$::")
-            if [ -z "$MOD" ]; then
-              # Safety: skip if we somehow landed at repo root
-              exit 0
-            fi
-
-            # Check if this module is part of the release manifest
-            if ! jq -e --arg m "$MOD" ".modules[\"$m\"]" release.json >/dev/null 2>&1; then
-              echo "Module $MOD not in release.json; skipping"
-              exit 0
-            fi
-
-            NOTES=""
-            for c in $COMMITS; do
-              # Filter commits that touched this module
-              if git diff-tree --no-commit-id --name-only -r "$c" | grep -q "^$MOD/"; then
-                subj=$(git log -1 --pretty=%s "$c")
-                NOTES="$NOTES\n- $subj"
-              fi
-            done
-
-            if [ -n "$NOTES" ]; then
-              echo "Creating changelog annotation for $MOD"
-              changelog create -c "${{ github.sha }}" -t release -d "$NOTES" "$MOD" -ni || true
-            else
-              echo "No relevant commits for $MOD in range; skipping changelog annotation"
-            fi
-          '
-
-      - name: Generate changelog
-        run: |
-          # Generate changelog from calculated release manifest
-          if command -v generatechangelog >/dev/null 2>&1; then
-            rm -f CHANGELOG.md 2>/dev/null || true
-            generatechangelog -release release.json -o CHANGELOG.md || echo "generatechangelog failed; skipping changelog generation"
-          else
-            echo "generatechangelog not available; skipping changelog generation"
-          fi
-
-      - name: Commit changes, then create and push tags per module
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Commit metadata and changelog updates in one commit (if any)
-          if [ -n "$(git status --porcelain)" ]; then
-            git add -A
-            git commit -m "chore(release): update changelog and module metadata [skip ci]"
-            # Push the commit
-            git push origin HEAD:main
-          else
-            echo "No changes to commit."
-          fi
-
-          # Ensure working tree is clean before tagging (remove ignored artifacts like .changelog)
-          git clean -fdX || true
-          # If anything else changed (e.g., generated tracked files), commit and push them too
-          if [ -n "$(git status --porcelain)" ]; then
-            git add -A
-            git commit -m "chore(release): finalize release artifacts [skip ci]" || true
-            git push origin HEAD:main || true
-          fi
-
-          # Create and push tags per module AFTER commit so tags point to this commit
-          tagrelease -release release.json
-          # Ensure tags are pushed if created locally
-          git push --follow-tags || true
