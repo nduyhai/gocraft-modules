@@ -51,7 +51,6 @@ jobs:
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/calculaterelease@latest
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/tagrelease@latest
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/changelog@latest
-          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/updatemodulemeta@latest
 
       - name: Configure Git user
         run: |
@@ -63,28 +62,9 @@ jobs:
           rm -f release.json
           calculaterelease -o release.json
 
-      - name: Update module metadata
-        run: |
-          if command -v updatemodulemeta >/dev/null 2>&1; then
-            updatemodulemeta -release release.json || true
-          else
-            echo "updatemodulemeta not available; skipping"
-          fi
-
       - name: Create and push tags per module
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Ensure working tree is clean before tagging (remove ignored artifacts like .changelog)
-          git clean -fdX || true
-          # If anything else changed (e.g., generated tracked files), commit and push them too
-          if [ -n "$(git status --porcelain)" ]; then
-            git add -A
-            git commit -m "chore(release): finalize release artifacts [skip ci]" || true
-            # Push commit so tags will point to the latest commit
-            git push origin HEAD:main || true
-          fi
           tagrelease -release release.json
-          # Ensure tags are pushed if created locally
           git push --follow-tags || true
-
