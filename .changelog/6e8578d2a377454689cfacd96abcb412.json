@@ -1,0 +1,9 @@
+{
+    "id": "6e8578d2-a377-4546-89cf-acd96abcb412",
+    "type": "release",
+    "collapse": true,
+    "description": "v1.0.1",
+    "modules": [
+        "http/gin"
+    ]
+}

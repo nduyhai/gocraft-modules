@@ -19,7 +19,7 @@ COVER_DIR=coverage
 # Use portable find-based discovery to avoid requiring git during local runs.
 MODULES := $(shell find . -type f -name go.mod -not -path './go.mod' -exec dirname {} \; | sed 's|^./||' | sort -u)
 
-.PHONY: all modules build run test test-coverage clean lint deps fmt goimports verify help
+.PHONY: all modules build run test test-coverage clean lint deps fmt goimports verify install-tools changelog-create help
 
 # Default entrypoint runs common tasks across all modules
 all: deps verify fmt goimports lint build test
@@ -144,6 +144,23 @@ install-tools:
 	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/generatechangelog@latest; \
 	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/changelog@latest
 
+# Generate a changelog entry (Non-Interactive)
+# Usage:
+#   make changelog-create RELEASE="v1.2.3" PACKAGE="http/gin"
+# This will create a rolled-up `release` type changelog entry with the given release description for the specified module.
+changelog-create:
+	@if ! command -v changelog >/dev/null 2>&1; then \
+		echo "changelog CLI not found. Run 'make install-tools' to install it."; \
+		exit 1; \
+	fi; \
+	if [ -z "$(RELEASE)" ] || [ -z "$(PACKAGE)" ]; then \
+		echo "Usage: make changelog-create RELEASE=\"<release-id-or-desc>\" PACKAGE=\"<module-path>\""; \
+		echo "Example: make changelog-create RELEASE=\"v1.2.3\" PACKAGE=\"http/gin\""; \
+		exit 2; \
+	fi; \
+	echo "==> creating changelog entry: type=release, package=$(PACKAGE), description=$(RELEASE)"; \
+	changelog create -ni -r -t release -d "$(RELEASE)" "$(PACKAGE)"
+
 # Help
 help:
 	@echo "Make targets:"
@@ -159,4 +176,5 @@ help:
 	@echo "  fmt            - go fmt across the workspace"
 	@echo "  goimports      - goimports across the workspace"
 	@echo "  install-tools  - Install AWS multi-module tools (makerelative, updaterequires, calculaterelease, tagrelease, generatechangelog, changelog)"
+	@echo "  changelog-create - Create a non-interactive changelog entry; requires RELEASE and PACKAGE"
 	@echo "  help           - Show this help"
