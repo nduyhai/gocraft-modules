@@ -82,9 +82,25 @@ jobs:
             else
               COMMITS=$(git rev-list --reverse "$RANGE")
             fi
+
+            # Determine modules to annotate from release.json, fallback to root module
+            MODULES=""
+            if [ -f release.json ] && command -v jq >/dev/null 2>&1; then
+              MODULES=$(jq -r '.modules | keys[]' release.json || true)
+            fi
+            if [ -z "$MODULES" ]; then
+              # Fallback to at least the root module so the tool has one module
+              MODULES="."
+            fi
+            MODULE_FLAGS=""
+            for m in $MODULES; do
+              MODULE_FLAGS="$MODULE_FLAGS -m $m"
+            done
+
             for c in $COMMITS; do
               subject=$(git log -1 --pretty=%s "$c" | sed 's/"/\\"/g')
-              changelog create -c "$c" -t release -d "$subject" -ni || true
+              # Provide at least one module to satisfy changelog requirements
+              changelog create -c "$c" -t release -d "$subject" $MODULE_FLAGS -ni || true
             done
           else
             echo "changelog CLI not available; skipping per-commit annotations"
