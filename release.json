@@ -1,16 +1,20 @@
 {
-    "id": "2025-08-16.3",
+    "id": "2025-08-16.4",
     "with_release_tag": true,
     "modules": {
-        "db/sqlc": {
-            "module_path": "github.com/nduyhai/gocraft-modules/db/sqlc",
-            "to": "v1.0.0-preview",
+        ".": {
+            "module_path": "github.com/nduyhai/gocraft-modules",
+            "from": "v1.0.0-preview",
+            "to": "v1.0.0-preview.1",
             "changes": {
-                "new_module": true
-            }
+                "source_change": true
+            },
+            "file_changes": [
+                "go.mod"
+            ]
         }
     },
     "tags": [
-        "db/sqlc/v1.0.0-preview"
+        "v1.0.0-preview.1"
     ]
 }
