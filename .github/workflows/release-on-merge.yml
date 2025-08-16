@@ -129,6 +129,15 @@ jobs:
             echo "No changes to commit."
           fi
 
+          # Ensure working tree is clean before tagging (remove ignored artifacts like .changelog)
+          git clean -fdX || true
+          # If anything else changed (e.g., generated tracked files), commit and push them too
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore(release): finalize release artifacts [skip ci]" || true
+            git push origin HEAD:main || true
+          fi
+
           # Create and push tags per module AFTER commit so tags point to this commit
           tagrelease -release release.json
           # Ensure tags are pushed if created locally
