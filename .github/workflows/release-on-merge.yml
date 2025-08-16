@@ -72,6 +72,24 @@ jobs:
             echo "updatemodulemeta not available; skipping"
           fi
 
+      - name: Create changelog annotations for commits in this push
+        run: |
+          if command -v changelog >/dev/null 2>&1; then
+            RANGE="${{ github.event.before }}..${{ github.sha }}"
+            if [ -z "${{ github.event.before }}" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+              # Fallback: annotate just the latest commit if before is missing (e.g., first push)
+              COMMITS=$(git rev-list -n 1 ${{ github.sha }})
+            else
+              COMMITS=$(git rev-list --reverse "$RANGE")
+            fi
+            for c in $COMMITS; do
+              subject=$(git log -1 --pretty=%s "$c" | sed 's/"/\\"/g')
+              changelog create -c "$c" -t release -d "$subject" -ni || true
+            done
+          else
+            echo "changelog CLI not available; skipping per-commit annotations"
+          fi
+
       - name: Generate changelog
         run: |
           # Generate changelog from calculated release manifest
