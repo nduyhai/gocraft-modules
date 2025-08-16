@@ -64,14 +64,6 @@ jobs:
           rm -f release.json
           calculaterelease -o release.json
 
-      - name: Create and push tags per module
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tagrelease -release release.json
-          # Ensure tags are pushed if created locally
-          git push --follow-tags || true
-
       - name: Update module metadata
         run: |
           if command -v updatemodulemeta >/dev/null 2>&1; then
@@ -89,14 +81,21 @@ jobs:
             echo "generatechangelog not available; skipping changelog generation"
           fi
 
-      - name: Commit and push changelog/metadata changes (if any)
+      - name: Commit changes, then create and push tags per module
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Commit metadata and changelog updates in one commit (if any)
           if [ -n "$(git status --porcelain)" ]; then
             git add -A
             git commit -m "chore(release): update changelog and module metadata [skip ci]"
+            # Push the commit
             git push origin HEAD:main
           else
             echo "No changes to commit."
           fi
+
+          # Create and push tags per module AFTER commit so tags point to this commit
+          tagrelease -release release.json
+          # Ensure tags are pushed if created locally
+          git push --follow-tags || true
