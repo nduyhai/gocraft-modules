@@ -19,7 +19,7 @@ COVER_DIR=coverage
 # Use portable find-based discovery to avoid requiring git during local runs.
 MODULES := $(shell find . -type f -name go.mod -not -path './go.mod' -exec dirname {} \; | sed 's|^./||' | sort -u)
 
-.PHONY: all modules build run test test-coverage clean lint deps fmt goimports verify install-tools changelog-create help
+.PHONY: all modules build run test test-coverage clean lint deps fmt goimports verify install-tools changelog-create module-create help
 
 # Default entrypoint runs common tasks across all modules
 all: deps verify fmt goimports lint build test
@@ -161,6 +161,44 @@ changelog-create:
 	echo "==> creating changelog entry: type=release, package=$(PACKAGE), description=$(RELEASE)"; \
 	changelog create -ni -r -t release -d "$(RELEASE)" "$(PACKAGE)"
 
+# Create a new module
+# Usage:
+#   make module-create MODULE="path/to/module"
+# This will:
+#  - create the module directory with a minimal go.mod and placeholder .go
+#  - update modman.toml with a new [modules."<MODULE>"] block
+#  - create a default changelog entry with description v1.0.0 for the module
+module-create:
+	@if [ -z "$(MODULE)" ]; then \
+		echo "Usage: make module-create MODULE=\"<path/to/module>\""; \
+		echo "Example: make module-create MODULE=\"cache/mem\""; \
+		exit 2; \
+	fi; \
+	set -e; \
+	# Validate module path
+	if [ -z "$(MODULE)" ] || [ "$(MODULE)" = "/" ]; then \
+		echo "Error: MODULE is empty or invalid (\"$(MODULE)\"). Aborting."; \
+		exit 4; \
+	fi; \
+	if [ -e "$(MODULE)" ] && [ ! -d "$(MODULE)" ]; then \
+		echo "Error: $(MODULE) exists and is not a directory"; \
+		exit 3; \
+	fi; \
+	mkdir -p "$(MODULE)"; \
+	# Create go.mod if not exists
+	if [ ! -f "$(MODULE)/go.mod" ]; then \
+		echo "Creating $(MODULE)/go.mod"; \
+		( cd "$(MODULE)" && $(GOCMD) mod init "github.com/nduyhai/gocraft-modules/$(MODULE)" && $(GOCMD) mod edit -go=1.25 ); \
+	fi; \
+
+	# Ensure changelog tool and create default entry v1.0.0
+	if ! command -v changelog >/dev/null 2>&1; then \
+		echo "changelog CLI not found. Run 'make install-tools' to install it."; \
+		exit 1; \
+	fi; \
+	echo "==> creating default changelog entry for $(MODULE): v1.0.0"; \
+	changelog create -ni -r -t release -d "v1.0.0" "$(MODULE)"; \
+
 # Help
 help:
 	@echo "Make targets:"
@@ -177,4 +215,5 @@ help:
 	@echo "  goimports      - goimports across the workspace"
 	@echo "  install-tools  - Install AWS multi-module tools (makerelative, updaterequires, calculaterelease, tagrelease, generatechangelog, changelog)"
 	@echo "  changelog-create - Create a non-interactive changelog entry; requires RELEASE and PACKAGE"
+	@echo "  module-create  - Create a new module with go.mod, placeholder file, modman.toml update, go.work update, and changelog entry"
 	@echo "  help           - Show this help"

@@ -1,0 +1,9 @@
+{
+    "id": "d7d26733-aa5c-40d2-b81a-b59726bb4e4d",
+    "type": "release",
+    "collapse": true,
+    "description": "v1.0.0",
+    "modules": [
+        "di/wire"
+    ]
+}
