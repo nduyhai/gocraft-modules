@@ -2,9 +2,7 @@
     "github.com/spf13/viper" = "v1.20.1"
 
 [modules]
-
-[modules]
     [modules."."]
         metadata_package = "gocraft"
     [modules."db/gorm"]
-    no_tag = true
+        no_tag = true

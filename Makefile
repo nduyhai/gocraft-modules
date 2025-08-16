@@ -82,16 +82,17 @@ test:
 # Combined report merging is intentionally omitted to keep this simple.
 # Usage: make test-coverage [MODULE=path]
 test-coverage:
-	@mkdir -p $(COVER_DIR); \
+	@COVER_ABS="$(CURDIR)/$(COVER_DIR)"; \
+	mkdir -p "$$COVER_ABS"; \
 	set -e; \
 	if [ -n "$(MODULE)" ]; then \
 		m=$(MODULE); \
 		echo "==> coverage in $$m"; \
-		( cd "$$m" && $(GOTEST) -v -coverprofile="../$(COVER_DIR)/$$(echo $$m | tr '/' '_').out" ./... ); \
+		( cd "$$m" && $(GOTEST) -v -coverprofile="$$COVER_ABS/$$(echo $$m | tr '/' '_').out" ./... ); \
 	else \
 		for m in $(MODULES); do \
 			echo "==> coverage in $$m"; \
-			( cd "$$m" && $(GOTEST) -v -coverprofile="../$(COVER_DIR)/$$(echo $$m | tr '/' '_').out" ./... ); \
+			( cd "$$m" && $(GOTEST) -v -coverprofile="$$COVER_ABS/$$(echo $$m | tr '/' '_').out" ./... ); \
 		done; \
 	fi
 
