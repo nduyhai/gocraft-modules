@@ -1,60 +1,10 @@
-# modman.toml — Configuration for AWS Go Multi-Module Repository Tools
-# This file drives makerelative, updaterequires, and release calculation/tagging.
+[dependencies]
+    "github.com/spf13/viper" = "v1.20.1"
 
-# Repository-wide module discovery. Adjust if you keep modules elsewhere.
 [modules]
-# Glob patterns where go.mod files live (relative to repo root)
-paths = [
-  "db/gorm",
-  "grpc/client",
-  "grpc/server",
-  "http/chi",
-  "http/gin",
-]
 
-# Configure dependency update policy. The tool can read these to bulk-update.
-# Example shows common libs; feel free to edit or add more.
-[updaterequires]
-# When true, use a single PR for all updates; otherwise one per group.
-single_pr = true
-
-  # Define groups of dependencies to update together
-  [[updaterequires.groups]]
-  name = "web-stack"
-  packages = [
-    { module = "github.com/gin-gonic/gin", version = "latest" },
-    { module = "go.uber.org/fx",        version = "latest" },
-  ]
-
-  [[updaterequires.groups]]
-  name = "grpc-stack"
-  packages = [
-    { module = "google.golang.org/grpc", version = "latest" },
-    { module = "google.golang.org/protobuf", version = "latest" },
-  ]
-
-# Release calculation and tagging settings per module.
-[release]
-# Allowed: auto, major, minor, patch; set to patch to always increment patch version on release.
-default_bump = "patch"
-# Tag format: "v{version}" yields v1.2.3 per module. Some repos prefer module-scoped tags; keep simple here.
-tag_format = "v{version}"
-# Whether to generate changelog sections per module
-changelog = true
-
-# Optional mapping to customize release rules per path (module directory)
-# [[release.modules]]
-# path = "http/gin"
-# bump = "minor"
-
-# Changelog generation settings
-[changelog]
-# Conventional commit types to include and their headings
-sections = [
-  { types = ["feat"],        title = "Features" },
-  { types = ["fix", "perf"], title = "Bug Fixes & Performance" },
-  { types = ["docs"],        title = "Documentation" },
-  { types = ["refactor"],    title = "Refactoring" },
-  { types = ["test"],        title = "Tests" },
-  { types = ["chore", "ci"], title = "Chores" },
-]
+[modules]
+    [modules."."]
+        metadata_package = "gocraft"
+    [modules."db/gorm"]
+    no_tag = true
