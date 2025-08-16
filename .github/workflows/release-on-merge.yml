@@ -67,7 +67,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tagrelease -release modman.toml
+          tagrelease -release release.json
           # Ensure tags are pushed if created locally
           git push --follow-tags || true
 
