@@ -34,7 +34,7 @@ deps:
 	@set -e; \
 	for m in $(MODULES); do \
 		echo "==> deps in $$m"; \
-		cd "$$m" && $(GOMOD) download && $(GOMOD) tidy; \
+		( cd "$$m" && $(GOMOD) download && $(GOMOD) tidy ); \
 	done
 
 # Verify dependencies for all modules
@@ -42,7 +42,7 @@ verify:
 	@set -e; \
 	for m in $(MODULES); do \
 		echo "==> verify in $$m"; \
-		cd "$$m" && $(GOMOD) verify; \
+		( cd "$$m" && $(GOMOD) verify ); \
 	done
 
 # Build packages
@@ -54,11 +54,11 @@ build:
 	set -e; \
 	if [ -n "$(MODULE)" ]; then \
 		echo "==> build in $(MODULE)"; \
-		cd "$(MODULE)" && $(GOBUILD) ./...; \
+		( cd "$(MODULE)" && $(GOBUILD) ./... ); \
 	else \
 		for m in $(MODULES); do \
 			echo "==> build in $$m"; \
-			cd "$$m" && $(GOBUILD) ./...; \
+			( cd "$$m" && $(GOBUILD) ./... ); \
 		done; \
 	fi
 
@@ -70,11 +70,11 @@ test:
 	@set -e; \
 	if [ -n "$(MODULE)" ]; then \
 		echo "==> test in $(MODULE)"; \
-		cd "$(MODULE)" && $(GOTEST) -v ./...; \
+		( cd "$(MODULE)" && $(GOTEST) -v ./... ); \
 	else \
 		for m in $(MODULES); do \
 			echo "==> test in $$m"; \
-			cd "$$m" && $(GOTEST) -v ./...; \
+			( cd "$$m" && $(GOTEST) -v ./... ); \
 		done; \
 	fi
 
@@ -87,11 +87,11 @@ test-coverage:
 	if [ -n "$(MODULE)" ]; then \
 		m=$(MODULE); \
 		echo "==> coverage in $$m"; \
-		cd "$$m" && $(GOTEST) -v -coverprofile="../$(COVER_DIR)/$$(echo $$m | tr '/' '_').out" ./...; \
+		( cd "$$m" && $(GOTEST) -v -coverprofile="../$(COVER_DIR)/$$(echo $$m | tr '/' '_').out" ./... ); \
 	else \
 		for m in $(MODULES); do \
 			echo "==> coverage in $$m"; \
-			cd "$$m" && $(GOTEST) -v -coverprofile="../$(COVER_DIR)/$$(echo $$m | tr '/' '_').out" ./...; \
+			( cd "$$m" && $(GOTEST) -v -coverprofile="../$(COVER_DIR)/$$(echo $$m | tr '/' '_').out" ./... ); \
 		done; \
 	fi
 
