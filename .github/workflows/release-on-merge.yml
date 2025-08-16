@@ -1,0 +1,73 @@
+name: Release on Merge to Main
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for tagging and changelog
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+
+      - name: Install AWS multi-module tools
+        run: |
+          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/calculaterelease@latest
+          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/tagrelease@latest
+          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/generatechangelog@latest
+          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/changelog@latest
+          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/updatemodulemeta@latest
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Calculate next per-module versions
+        run: |
+          calculaterelease --config modman.toml
+
+      - name: Create and push tags per module
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tagrelease --config modman.toml
+          # Ensure tags are pushed if created locally
+          git push --follow-tags || true
+
+      - name: Update module metadata
+        run: |
+          if command -v updatemodulemeta >/dev/null 2>&1; then
+            updatemodulemeta --config modman.toml || true
+          else
+            echo "updatemodulemeta not available; skipping"
+          fi
+
+      - name: Generate changelog
+        run: |
+          # Try the generator first; fallback to renderer if necessary
+          generatechangelog --config modman.toml --output CHANGELOG.md || \
+          changelog --config modman.toml --output CHANGELOG.md
+
+      - name: Commit and push changelog/metadata changes (if any)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore(release): update changelog and module metadata [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit."
+          fi

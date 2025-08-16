@@ -47,6 +47,7 @@ make lint MODULE=grpc/server
 ## CI
 
 - .github/workflows/multi-module-ci.yml: discovers modules and runs tidy/verify, build, test, lint per module.
+- .github/workflows/release-on-merge.yml: on push to main, calculates per-module versions, tags releases, updates module metadata, and generates CHANGELOG via AWS multi-module tools.
 
 ## Makefile Targets (highlights)
 
