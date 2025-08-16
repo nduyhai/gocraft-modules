@@ -1,3 +1,10 @@
 go 1.25.0
 
-use .
+use (
+	.
+	db/gorm
+	grpc/client
+	grpc/server
+	http/chi
+	http/gin
+)
