@@ -1,16 +1,6 @@
 {
-    "id": "2025-08-16.2",
+    "id": "2025-08-16.3",
     "with_release_tag": true,
-    "modules": {
-        "db/gorm": {
-            "module_path": "github.com/nduyhai/gocraft-modules/db/gorm",
-            "to": "v1.0.0-preview",
-            "changes": {
-                "new_module": true
-            }
-        }
-    },
-    "tags": [
-        "db/gorm/v1.0.0-preview"
-    ]
+    "modules": {},
+    "tags": null
 }
