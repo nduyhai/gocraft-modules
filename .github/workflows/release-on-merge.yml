@@ -61,6 +61,7 @@ jobs:
 
       - name: Calculate next per-module versions
         run: |
+          rm -f release.json
           calculaterelease -o release.json
 
       - name: Create and push tags per module
