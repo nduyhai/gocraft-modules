@@ -2,69 +2,15 @@
     "id": "2025-08-16.3",
     "with_release_tag": true,
     "modules": {
-        ".": {
-            "module_path": "github.com/nduyhai/gocraft-modules",
-            "from": "v1.0.0-preview",
-            "to": "v1.0.0-preview.1",
-            "changes": {
-                "source_change": true
-            }
-        },
-        "db/gorm": {
-            "module_path": "github.com/nduyhai/gocraft-modules/db/gorm",
-            "from": "v1.0.0-preview",
-            "to": "v1.0.0-preview.1",
-            "changes": {
-                "source_change": true
-            }
-        },
         "db/sqlc": {
             "module_path": "github.com/nduyhai/gocraft-modules/db/sqlc",
             "to": "v1.0.0-preview",
             "changes": {
                 "new_module": true
             }
-        },
-        "grpc/client": {
-            "module_path": "github.com/nduyhai/gocraft-modules/grpc/client",
-            "from": "v1.0.0-preview",
-            "to": "v1.0.0-preview.1",
-            "changes": {
-                "source_change": true
-            }
-        },
-        "grpc/server": {
-            "module_path": "github.com/nduyhai/gocraft-modules/grpc/server",
-            "from": "v1.0.0-preview",
-            "to": "v1.0.0-preview.1",
-            "changes": {
-                "source_change": true
-            }
-        },
-        "http/chi": {
-            "module_path": "github.com/nduyhai/gocraft-modules/http/chi",
-            "from": "v1.0.0-preview",
-            "to": "v1.0.0-preview.1",
-            "changes": {
-                "source_change": true
-            }
-        },
-        "http/gin": {
-            "module_path": "github.com/nduyhai/gocraft-modules/http/gin",
-            "from": "v1.0.0-preview",
-            "to": "v1.0.0-preview.1",
-            "changes": {
-                "source_change": true
-            }
         }
     },
     "tags": [
-        "db/gorm/v1.0.0-preview.1",
-        "db/sqlc/v1.0.0-preview",
-        "grpc/client/v1.0.0-preview.1",
-        "grpc/server/v1.0.0-preview.1",
-        "http/chi/v1.0.0-preview.1",
-        "http/gin/v1.0.0-preview.1",
-        "v1.0.0-preview.1"
+        "db/sqlc/v1.0.0-preview"
     ]
 }
