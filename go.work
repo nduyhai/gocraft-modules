@@ -8,4 +8,5 @@ use (
 	grpc/server
 	http/chi
 	http/gin
+	cache/redis
 )

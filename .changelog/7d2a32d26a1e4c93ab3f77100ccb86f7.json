@@ -1,0 +1,9 @@
+{
+    "id": "7d2a32d2-6a1e-4c93-ab3f-77100ccb86f7",
+    "type": "release",
+    "collapse": true,
+    "description": "v1.0.0",
+    "modules": [
+        "cache/redis"
+    ]
+}

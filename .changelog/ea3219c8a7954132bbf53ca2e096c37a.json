@@ -1,0 +1,9 @@
+{
+    "id": "ea3219c8-a795-4132-bbf5-3ca2e096c37a",
+    "type": "release",
+    "collapse": true,
+    "description": "v1.0.0",
+    "modules": [
+        "."
+    ]
+}
