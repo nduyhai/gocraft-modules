@@ -1,0 +1,8 @@
+{
+    "id": "eca4f22c-8219-40e4-8acc-83acb5bfd98b",
+    "type": "release",
+    "description": "feat: init sqlc \u0026\u0026 add changelog",
+    "modules": [
+        "db/sqlc"
+    ]
+}
