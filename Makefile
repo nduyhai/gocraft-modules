@@ -175,47 +175,40 @@ module-create:
 		exit 2; \
 	fi; \
 	set -e; \
-	BASE_MOD=$$(awk '/^module /{print $$2}' go.mod); \
-	MOD_DIR="$(MODULE)"; \
-	if [ -z "$$MOD_DIR" ] || [ "$$MOD_DIR" = "/" ]; then \
-		echo "Error: MODULE is empty or invalid (\"$$MOD_DIR\"). Aborting."; \
+	# Validate module path
+	if [ -z "$(MODULE)" ] || [ "$(MODULE)" = "/" ]; then \
+		echo "Error: MODULE is empty or invalid (\"$(MODULE)\"). Aborting."; \
 		exit 4; \
 	fi; \
-	if [ -e "$$MOD_DIR" ] && [ ! -d "$$MOD_DIR" ]; then \
-		echo "Error: $$MOD_DIR exists and is not a directory"; \
+	if [ -e "$(MODULE)" ] && [ ! -d "$(MODULE)" ]; then \
+		echo "Error: $(MODULE) exists and is not a directory"; \
 		exit 3; \
 	fi; \
-	mkdir -p "$$MOD_DIR"; \
+	mkdir -p "$(MODULE)"; \
 	# Create go.mod if not exists
-	if [ ! -f "$$MOD_DIR/go.mod" ]; then \
-		echo "Creating $$MOD_DIR/go.mod"; \
-		( cd "$$MOD_DIR" && $(GOCMD) mod init "$$BASE_MOD/$(MODULE)" && $(GOCMD) mod edit -go=1.25 ); \
+	if [ ! -f "$(MODULE)/go.mod" ]; then \
+		echo "Creating $(MODULE)/go.mod"; \
+		( cd "$(MODULE)" && $(GOCMD) mod init "github.com/nduyhai/gocraft-modules/$(MODULE)" && $(GOCMD) mod edit -go=1.25 ); \
 	fi; \
-	# Create a placeholder .go file if none present
-	if ! find "$$MOD_DIR" -maxdepth 1 -type f -name '*.go' | grep -q .; then \
-		PKG_NAME=$$(basename "$$MOD_DIR" | tr '-' '_' ); \
-		FNAME="$$MOD_DIR/$$PKG_NAME.go"; \
-		echo "Creating $$FNAME"; \
-		printf "package %s\n\n// Package %s is a placeholder for the new module.\n" "$$PKG_NAME" "$$PKG_NAME" > "$$FNAME"; \
-	fi; \
-	# Update modman.toml if the module entry does not exist
-	if ! grep -E "^[[:space:]]*\[modules\.\"$(MODULE)\"\]" modman.toml >/dev/null 2>&1; then \
-		echo "Updating modman.toml with module $(MODULE)"; \
-		{ \
-			echo "    [modules.\"$(MODULE)\"]"; \
-			echo "        no_tag = false"; \
-			echo "        pre_release=\"\""; \
-		} >> modman.toml; \
-	else \
-		echo "modman.toml already contains module $(MODULE); skipping update"; \
-	fi; \
+
 	# Ensure changelog tool and create default entry v1.0.0
 	if ! command -v changelog >/dev/null 2>&1; then \
 		echo "changelog CLI not found. Run 'make install-tools' to install it."; \
 		exit 1; \
 	fi; \
 	echo "==> creating default changelog entry for $(MODULE): v1.0.0"; \
-	changelog create -ni -r -t release -d "v1.0.0" "$(MODULE)"
+	changelog create -ni -r -t release -d "v1.0.0" "$(MODULE)"; \
+	# Update go.work using go work use command
+	if [ -f "go.work" ] && ! grep -E "^[[:space:]]*$(MODULE)" go.work >/dev/null 2>&1; then \
+		echo "Adding $(MODULE) to go.work using go work use"; \
+		$(GOCMD) work use "$(MODULE)"; \
+	else \
+		if [ -f "go.work" ]; then \
+			echo "go.work already contains $(MODULE); skipping update"; \
+		else \
+			echo "go.work not found; skipping update"; \
+		fi; \
+	fi
 
 # Help
 help:
@@ -233,5 +226,5 @@ help:
 	@echo "  goimports      - goimports across the workspace"
 	@echo "  install-tools  - Install AWS multi-module tools (makerelative, updaterequires, calculaterelease, tagrelease, generatechangelog, changelog)"
 	@echo "  changelog-create - Create a non-interactive changelog entry; requires RELEASE and PACKAGE"
-	@echo "  module-create  - Create a new module with go.mod, placeholder file, modman.toml update, and changelog entry"
+	@echo "  module-create  - Create a new module with go.mod, placeholder file, modman.toml update, go.work update, and changelog entry"
 	@echo "  help           - Show this help"
