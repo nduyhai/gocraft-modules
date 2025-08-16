@@ -1,37 +1,9 @@
 {
-    "id": "2025-08-16",
+    "id": "2025-08-16.2",
     "with_release_tag": true,
     "modules": {
-        ".": {
-            "module_path": "github.com/nduyhai/gocraft-modules",
-            "to": "v1.0.0-preview",
-            "changes": {
-                "new_module": true
-            }
-        },
-        "grpc/client": {
-            "module_path": "github.com/nduyhai/gocraft-modules/grpc/client",
-            "to": "v1.0.0-preview",
-            "changes": {
-                "new_module": true
-            }
-        },
-        "grpc/server": {
-            "module_path": "github.com/nduyhai/gocraft-modules/grpc/server",
-            "to": "v1.0.0-preview",
-            "changes": {
-                "new_module": true
-            }
-        },
-        "http/chi": {
-            "module_path": "github.com/nduyhai/gocraft-modules/http/chi",
-            "to": "v1.0.0-preview",
-            "changes": {
-                "new_module": true
-            }
-        },
-        "http/gin": {
-            "module_path": "github.com/nduyhai/gocraft-modules/http/gin",
+        "db/gorm": {
+            "module_path": "github.com/nduyhai/gocraft-modules/db/gorm",
             "to": "v1.0.0-preview",
             "changes": {
                 "new_module": true
@@ -39,10 +11,6 @@
         }
     },
     "tags": [
-        "grpc/client/v1.0.0-preview",
-        "grpc/server/v1.0.0-preview",
-        "http/chi/v1.0.0-preview",
-        "http/gin/v1.0.0-preview",
-        "v1.0.0-preview"
+        "db/gorm/v1.0.0-preview"
     ]
 }
