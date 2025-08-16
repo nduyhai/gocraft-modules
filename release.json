@@ -1,6 +1,19 @@
 {
     "id": "2025-08-16.5",
     "with_release_tag": true,
-    "modules": {},
-    "tags": null
+    "modules": {
+        "cache/redis": {
+            "module_path": "github.com/nduyhai/gocraft-modules/cache/redis",
+            "to": "v1.0.0",
+            "changes": {
+                "new_module": true
+            },
+            "annotations": [
+                "7d2a32d2-6a1e-4c93-ab3f-77100ccb86f7"
+            ]
+        }
+    },
+    "tags": [
+        "cache/redis/v1.0.0"
+    ]
 }
