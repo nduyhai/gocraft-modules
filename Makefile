@@ -19,7 +19,7 @@ COVER_DIR=coverage
 # Use portable find-based discovery to avoid requiring git during local runs.
 MODULES := $(shell find . -type f -name go.mod -not -path './go.mod' -exec dirname {} \; | sed 's|^./||' | sort -u)
 
-.PHONY: all modules build run test test-coverage clean lint deps fmt goimports verify install-tools changelog-create help
+.PHONY: all modules build run test test-coverage clean lint deps fmt goimports verify install-tools changelog-create module-create help
 
 # Default entrypoint runs common tasks across all modules
 all: deps verify fmt goimports lint build test
@@ -161,6 +161,62 @@ changelog-create:
 	echo "==> creating changelog entry: type=release, package=$(PACKAGE), description=$(RELEASE)"; \
 	changelog create -ni -r -t release -d "$(RELEASE)" "$(PACKAGE)"
 
+# Create a new module
+# Usage:
+#   make module-create MODULE="path/to/module"
+# This will:
+#  - create the module directory with a minimal go.mod and placeholder .go
+#  - update modman.toml with a new [modules."<MODULE>"] block
+#  - create a default changelog entry with description v1.0.0 for the module
+module-create:
+	@if [ -z "$(MODULE)" ]; then \
+		echo "Usage: make module-create MODULE=\"<path/to/module>\""; \
+		echo "Example: make module-create MODULE=\"cache/mem\""; \
+		exit 2; \
+	fi; \
+	set -e; \
+	BASE_MOD=$$(awk '/^module /{print $$2}' go.mod); \
+	MOD_DIR="$(MODULE)"; \
+	if [ -z "$$MOD_DIR" ] || [ "$$MOD_DIR" = "/" ]; then \
+		echo "Error: MODULE is empty or invalid (\"$$MOD_DIR\"). Aborting."; \
+		exit 4; \
+	fi; \
+	if [ -e "$$MOD_DIR" ] && [ ! -d "$$MOD_DIR" ]; then \
+		echo "Error: $$MOD_DIR exists and is not a directory"; \
+		exit 3; \
+	fi; \
+	mkdir -p "$$MOD_DIR"; \
+	# Create go.mod if not exists
+	if [ ! -f "$$MOD_DIR/go.mod" ]; then \
+		echo "Creating $$MOD_DIR/go.mod"; \
+		( cd "$$MOD_DIR" && $(GOCMD) mod init "$$BASE_MOD/$(MODULE)" && $(GOCMD) mod edit -go=1.25 ); \
+	fi; \
+	# Create a placeholder .go file if none present
+	if ! find "$$MOD_DIR" -maxdepth 1 -type f -name '*.go' | grep -q .; then \
+		PKG_NAME=$$(basename "$$MOD_DIR" | tr '-' '_' ); \
+		FNAME="$$MOD_DIR/$$PKG_NAME.go"; \
+		echo "Creating $$FNAME"; \
+		printf "package %s\n\n// Package %s is a placeholder for the new module.\n" "$$PKG_NAME" "$$PKG_NAME" > "$$FNAME"; \
+	fi; \
+	# Update modman.toml if the module entry does not exist
+	if ! grep -E "^[[:space:]]*\[modules\.\"$(MODULE)\"\]" modman.toml >/dev/null 2>&1; then \
+		echo "Updating modman.toml with module $(MODULE)"; \
+		{ \
+			echo "    [modules.\"$(MODULE)\"]"; \
+			echo "        no_tag = false"; \
+			echo "        pre_release=\"\""; \
+		} >> modman.toml; \
+	else \
+		echo "modman.toml already contains module $(MODULE); skipping update"; \
+	fi; \
+	# Ensure changelog tool and create default entry v1.0.0
+	if ! command -v changelog >/dev/null 2>&1; then \
+		echo "changelog CLI not found. Run 'make install-tools' to install it."; \
+		exit 1; \
+	fi; \
+	echo "==> creating default changelog entry for $(MODULE): v1.0.0"; \
+	changelog create -ni -r -t release -d "v1.0.0" "$(MODULE)"
+
 # Help
 help:
 	@echo "Make targets:"
@@ -177,4 +233,5 @@ help:
 	@echo "  goimports      - goimports across the workspace"
 	@echo "  install-tools  - Install AWS multi-module tools (makerelative, updaterequires, calculaterelease, tagrelease, generatechangelog, changelog)"
 	@echo "  changelog-create - Create a non-interactive changelog entry; requires RELEASE and PACKAGE"
+	@echo "  module-create  - Create a new module with go.mod, placeholder file, modman.toml update, and changelog entry"
 	@echo "  help           - Show this help"
