@@ -6,3 +6,19 @@
         metadata_package = "internal/meta"
     [modules."db/gorm"]
         no_tag = false
+        pre_release=""
+    [modules."db/sqlc"]
+        no_tag = false
+        pre_release=""
+    [modules."grpc/client"]
+        no_tag = false
+        pre_release=""
+    [modules."grpc/server"]
+        no_tag = false
+        pre_release=""
+    [modules."http/chi"]
+        no_tag = false
+        pre_release=""
+    [modules."http/gin"]
+        no_tag = false
+        pre_release=""
