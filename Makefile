@@ -198,17 +198,6 @@ module-create:
 	fi; \
 	echo "==> creating default changelog entry for $(MODULE): v1.0.0"; \
 	changelog create -ni -r -t release -d "v1.0.0" "$(MODULE)"; \
-	# Update go.work using go work use command
-	if [ -f "go.work" ] && ! grep -E "^[[:space:]]*$(MODULE)" go.work >/dev/null 2>&1; then \
-		echo "Adding $(MODULE) to go.work using go work use"; \
-		$(GOCMD) work use "$(MODULE)"; \
-	else \
-		if [ -f "go.work" ]; then \
-			echo "go.work already contains $(MODULE); skipping update"; \
-		else \
-			echo "go.work not found; skipping update"; \
-		fi; \
-	fi
 
 # Help
 help:

@@ -1,0 +1,9 @@
+{
+    "id": "25a5bac8-b888-4b85-85b0-85794b216d01",
+    "type": "release",
+    "collapse": true,
+    "description": "v1.0.0",
+    "modules": [
+        "di/fx"
+    ]
+}
