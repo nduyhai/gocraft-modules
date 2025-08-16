@@ -1,20 +1,6 @@
 {
-    "id": "2025-08-16.4",
+    "id": "2025-08-16.5",
     "with_release_tag": true,
-    "modules": {
-        ".": {
-            "module_path": "github.com/nduyhai/gocraft-modules",
-            "from": "v1.0.0-preview",
-            "to": "v1.0.0-preview.1",
-            "changes": {
-                "source_change": true
-            },
-            "file_changes": [
-                "go.mod"
-            ]
-        }
-    },
-    "tags": [
-        "v1.0.0-preview.1"
-    ]
+    "modules": {},
+    "tags": null
 }
