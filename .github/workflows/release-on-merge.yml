@@ -74,16 +74,19 @@ jobs:
       - name: Update module metadata
         run: |
           if command -v updatemodulemeta >/dev/null 2>&1; then
-            updatemodulemeta --config modman.toml || true
+            updatemodulemeta -release release.json || true
           else
             echo "updatemodulemeta not available; skipping"
           fi
 
       - name: Generate changelog
         run: |
-          # Try the generator first; fallback to renderer if necessary
-          generatechangelog --config modman.toml --output CHANGELOG.md || \
-          changelog --config modman.toml --output CHANGELOG.md
+          # Generate changelog from calculated release manifest
+          if command -v generatechangelog >/dev/null 2>&1; then
+            generatechangelog -release release.json -o CHANGELOG.md || echo "generatechangelog failed; skipping changelog generation"
+          else
+            echo "generatechangelog not available; skipping changelog generation"
+          fi
 
       - name: Commit and push changelog/metadata changes (if any)
         env:

@@ -5,4 +5,4 @@
     [modules."."]
         metadata_package = "gocraft"
     [modules."db/gorm"]
-        no_tag = true
+        no_tag = false
