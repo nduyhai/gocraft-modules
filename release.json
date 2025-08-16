@@ -1,19 +1,30 @@
 {
-    "id": "2025-08-16.5",
+    "id": "2025-08-16.6",
     "with_release_tag": true,
     "modules": {
-        "cache/redis": {
-            "module_path": "github.com/nduyhai/gocraft-modules/cache/redis",
+        "di/fx": {
+            "module_path": "github.com/nduyhai/gocraft-modules/di/fx",
             "to": "v1.0.0",
             "changes": {
                 "new_module": true
             },
             "annotations": [
-                "7d2a32d2-6a1e-4c93-ab3f-77100ccb86f7"
+                "25a5bac8-b888-4b85-85b0-85794b216d01"
+            ]
+        },
+        "di/wire": {
+            "module_path": "github.com/nduyhai/gocraft-modules/di/wire",
+            "to": "v1.0.0",
+            "changes": {
+                "new_module": true
+            },
+            "annotations": [
+                "d7d26733-aa5c-40d2-b81a-b59726bb4e4d"
             ]
         }
     },
     "tags": [
-        "cache/redis/v1.0.0"
+        "di/fx/v1.0.0",
+        "di/wire/v1.0.0"
     ]
 }
