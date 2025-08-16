@@ -134,6 +134,15 @@ run:
 	echo "==> run in $(MODULE)"; \
 	cd "$(MODULE)" && $(GOCMD) run ./...
 
+install-tools:
+	@set -e; \
+	echo "Installing AWS multi-module tools..."; \
+	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/makerelative@latest; \
+	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/updaterequires@latest; \
+	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/calculaterelease@latest; \
+	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/tagrelease@latest; \
+	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/generatechangelog@latest; \
+	$(GOCMD) install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/changelog@latest
 
 # Help
 help:
@@ -149,4 +158,5 @@ help:
 	@echo "  lint           - Run golangci-lint per module"
 	@echo "  fmt            - go fmt across the workspace"
 	@echo "  goimports      - goimports across the workspace"
+	@echo "  install-tools  - Install AWS multi-module tools (makerelative, updaterequires, calculaterelease, tagrelease, generatechangelog, changelog)"
 	@echo "  help           - Show this help"
