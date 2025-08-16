@@ -53,6 +53,7 @@ jobs:
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/generatechangelog@latest
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/changelog@latest
           go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/updatemodulemeta@latest
+          go install github.com/awslabs/aws-go-multi-module-repository-tools/cmd/eachmodule@latest
 
       - name: Configure Git user
         run: |
@@ -72,34 +73,63 @@ jobs:
             echo "updatemodulemeta not available; skipping"
           fi
 
-      - name: Create changelog annotations for commits in this push
+      - name: Create per-module changelog annotations with eachmodule
         run: |
-          if command -v changelog >/dev/null 2>&1; then
-            RANGE="${{ github.event.before }}..${{ github.sha }}"
-            if [ -z "${{ github.event.before }}" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-              # Fallback: annotate just the latest commit if before is missing (e.g., first push)
-              COMMITS=$(git rev-list -n 1 ${{ github.sha }})
-            else
-              COMMITS=$(git rev-list --reverse "$RANGE")
+          if ! command -v changelog >/dev/null 2>&1; then
+            echo "changelog CLI not available; skipping per-module annotations"
+            exit 0
+          fi
+          if ! command -v eachmodule >/dev/null 2>&1; then
+            echo "eachmodule CLI not available; skipping per-module annotations"
+            exit 0
+          fi
+          if [ ! -f release.json ]; then
+            echo "release.json missing; nothing to annotate"
+            exit 0
+          fi
+
+          # Establish commit range for this push
+          RANGE="${{ github.event.before }}..${{ github.sha }}"
+          if [ -z "${{ github.event.before }}" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            COMMITS=$(git rev-list -n 1 ${{ github.sha }})
+          else
+            COMMITS=$(git rev-list --reverse "$RANGE")
+          fi
+
+          # Walk each module and create an annotation only if:
+          #  1) The module is present in release.json (.modules["<path>"] exists), and
+          #  2) There are commits in this push that touched files under that module.
+          eachmodule -skip-root -- bash -lc '
+            set -e
+            # Determine module path relative to repo root
+            MOD=$(git rev-parse --show-prefix | sed "s:/$::")
+            if [ -z "$MOD" ]; then
+              # Safety: skip if we somehow landed at repo root
+              exit 0
             fi
 
-            # Determine modules to annotate from release.json, fallback to root module
-            MODULES=""
-            if [ -f release.json ] && command -v jq >/dev/null 2>&1; then
-              MODULES=$(jq -r '.modules | keys[]' release.json || true)
+            # Check if this module is part of the release manifest
+            if ! jq -e --arg m "$MOD" ".modules[\"$m\"]" release.json >/dev/null 2>&1; then
+              echo "Module $MOD not in release.json; skipping"
+              exit 0
             fi
-            if [ -z "$MODULES" ]; then
-              # Fallback to at least the root module so the tool has one module
-              MODULES="."
-            fi
+
+            NOTES=""
             for c in $COMMITS; do
-              subject=$(git log -1 --pretty=%s "$c" | sed 's/"/\\"/g')
-              # Provide modules as positional arguments (no -m flag supported by changelog CLI)
-              changelog create -c "$c" -t release -d "$subject" $MODULES -ni || true
+              # Filter commits that touched this module
+              if git diff-tree --no-commit-id --name-only -r "$c" | grep -q "^$MOD/"; then
+                subj=$(git log -1 --pretty=%s "$c")
+                NOTES="$NOTES\n- $subj"
+              fi
             done
-          else
-            echo "changelog CLI not available; skipping per-commit annotations"
-          fi
+
+            if [ -n "$NOTES" ]; then
+              echo "Creating changelog annotation for $MOD"
+              changelog create -c "${{ github.sha }}" -t release -d "$NOTES" "$MOD" -ni || true
+            else
+              echo "No relevant commits for $MOD in range; skipping changelog annotation"
+            fi
+          '
 
       - name: Generate changelog
         run: |
