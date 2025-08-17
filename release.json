@@ -1,30 +1,23 @@
 {
-    "id": "2025-08-16.6",
+    "id": "2025-08-17",
     "with_release_tag": true,
     "modules": {
-        "di/fx": {
-            "module_path": "github.com/nduyhai/gocraft-modules/di/fx",
+        ".": {
+            "module_path": "github.com/nduyhai/gocraft-modules",
+            "from": "v1.0.0-preview.1",
             "to": "v1.0.0",
             "changes": {
-                "new_module": true
+                "source_change": true
             },
+            "file_changes": [
+                "internal/meta/meta.go"
+            ],
             "annotations": [
-                "25a5bac8-b888-4b85-85b0-85794b216d01"
-            ]
-        },
-        "di/wire": {
-            "module_path": "github.com/nduyhai/gocraft-modules/di/wire",
-            "to": "v1.0.0",
-            "changes": {
-                "new_module": true
-            },
-            "annotations": [
-                "d7d26733-aa5c-40d2-b81a-b59726bb4e4d"
+                "ea3219c8-a795-4132-bbf5-3ca2e096c37a"
             ]
         }
     },
     "tags": [
-        "di/fx/v1.0.0",
-        "di/wire/v1.0.0"
+        "v1.0.0"
     ]
 }
