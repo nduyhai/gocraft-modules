@@ -7,4 +7,4 @@ package meta
 // Version indicates the library version for the root module. It is
 // not used by the submodules; it exists to keep the root module
 // non-empty for Go tooling.
-const Version = "0.0.0"
+const Version = "v1.0.0"
